@@ -115,9 +115,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-           sudo chown -R $(whoami) /opt/lemp/
-           sudo chmod -R u+rwX /opt/lemp/
-           sudo chmod -R 775 /opt/lemp/
+           sudo chown $(whoami) /opt/lemp/docker-compose.prod.yml
+           sudo chmod u+rwX /opt/lemp/docker-compose.prod.yml
+           sudo chmod 775 /opt/lemp/docker-compose.prod.yml
 
   deploy:
     runs-on: ubuntu-latest
