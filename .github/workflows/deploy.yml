@@ -105,7 +105,19 @@ jobs:
           port: 22
           source: docker-compose.prod.yml
           target: /opt/lemp/
+          strip_components: 0
 
+      - name: set permissions for docker-compose.prod.yml
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+           sudo chown -R $(whoami) /opt/lemp/
+           sudo chmod -R u+rwX /opt/lemp/
+           sudo chmod -R 775 /opt/lemp/
 
   deploy:
     runs-on: ubuntu-latest
