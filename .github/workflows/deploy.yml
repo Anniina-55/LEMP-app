@@ -93,11 +93,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: copy-init-sql
     steps:
-      - name: Change permissions
-        run: chmod 644 docker-compose.prod.yml
-        
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Change permissions 
+        run: chmod 644 docker-compose.prod.yml
 
       - name: Copy docker-compose.prod.yml to VM
         uses: appleboy/scp-action@v0.1.4
