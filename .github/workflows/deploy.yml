@@ -103,9 +103,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          source: docker-compose.prod.yml
+          source: ./docker-compose.prod.yml
           target: /opt/lemp/
-          strip_components: 0
+          strip_components: 1
 
       - name: set permissions for docker-compose.prod.yml
         uses: appleboy/ssh-action@v1.0.3
