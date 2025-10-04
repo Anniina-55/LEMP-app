@@ -65,7 +65,7 @@ jobs:
             port: 22
             script: |
               cd /
-              mkdir -p /opt/lemp/db/init/
+              sudo mkdir -p /opt/lemp/db/init/
 
         - name: Set permissions for /opt/lemp/db/init/
           uses: appleboy/ssh-action@v1.0.3
