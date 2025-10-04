@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Containerized LEMP Example</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #507e13, #628d3a);
+    color: #333;
+    text-align: center;
+    padding: 2rem;
+    height: 100vh;
+  }
+
+  h1 {
+    color: #f89ba9; 
+    margin-bottom: 1rem;
+  }
+  h3 {
+    color: white;
+    margin-bottom: 3rem;
+  }
+
+  #card {
+    background: rgba(75, 75, 75, 0.3); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    padding: 3rem;
+    margin: 2rem auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.226);
+    width: 90%;
+    max-width: 800px;
+  }
+  #msg, #time, #quote {
+    background: #fbffe9;
+    padding: 1.2rem;
+    margin: 1rem auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    width: 90%;
+    max-width: 600px;
+  }
+
+  button {
+    background-color: #eb8393; 
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 3px;
+    transition: 0.3s ease, transform 0.2s ease;
+  }
+
+  button:hover {
+    background-color: #d6677f;
+    transform: scale(1.05);
+  }
+
+</style>
+
+</head>
+<body>
+    <div id="card">
+        <h1>Anniina's containerized LEMP app</h1>
+        <h3>Here's some example api-endpoints...</h3>
+        <div id="msg">Loading message...</div>
+        <div id="time">Loading server time...</div>
+        <div id="quote">Loading quote...</div>
+
+        <button onclick="updateTime()">Update time</button>
+        <button onclick="updateQuote()">Update quote</button>
+    </div>
+
+
+<script>
+// ---- Functions ----
+function updateMessage() {
+  fetch('/api/message')
+    .then(r => r.json())
+    .then(d => { document.getElementById('msg').innerText = d.message; })
+    .catch(e => { 
+        console.error("Message fetch error:", e);
+        document.getElementById('msg').innerText = "Message can't be loaded right now";})
+}
+
+function updateTime() {
+  fetch('/api/time')
+    .then(r => r.json())
+    .then(d => { document.getElementById('time').innerText = 'Server time: ' + d.server_time; })
+    .catch(e => { 
+        console.error("Time fetch error:", e);
+        document.getElementById('time').innerText = "Unable to load time right now"; });
+}
+
+function updateQuote() {
+  fetch('/api/quote')
+    .then(r => r.json())
+    .then(d => { document.getElementById('quote').innerText = 'Quote: ' + d.quote; })
+    .catch(e => { 
+        console.error("Quote fetch error:", e);
+        document.getElementById('quote').innerText = "Unable to load quote right now"; });
+}
+
+// ---- Initial load ----
+updateMessage();
+updateTime();
+updateQuote();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      LANG: C.UTF-8
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    image: ${DOCKERHUB_USERNAME}/lemp-backend:latest
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/lemp-frontend:latest
+    depends_on:
+      - backend
+    ports:
+      - "8080:80" # expose only frontend to the host
+
+volumes:
+  db_data:
