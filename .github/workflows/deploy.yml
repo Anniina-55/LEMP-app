@@ -109,7 +109,7 @@ jobs:
             cd /opt/lemp
             
             if [ ! -d "/var/lib/docker/volumes/lemp_db_data" ]; then
-              docker compose -f docker-compose.prop.yml down -v
+              docker compose -f docker-compose.prod.yml down -v
             else
               docker compose -f docker-compose.prod.yml down
             fi
