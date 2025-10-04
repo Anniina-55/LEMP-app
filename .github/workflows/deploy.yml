@@ -1,0 +1,119 @@
+name: CI/CD for LEMP Containers
+
+on:
+  push:
+    branches: [ main ]
+    tags:     [ 'v*' ]  # optional: run on version tags, e.g., v1.0.0
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/lemp-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/lemp-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/lemp-backend:latest
+          cache-to: type=inline
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/lemp-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/lemp-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/lemp-frontend:latest
+          cache-to: type=inline
+
+  
+  copy-init-sql:
+      runs-on: ubuntu-latest
+      needs: build-and-push
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Ensure target directory exists on VM
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USER }}
+            key: ${{ secrets.SSH_KEY }}
+            port: 22
+            script: |
+              cd /
+              mkdir -p /opt/lemp/db/init/
+
+        - name: Set permissions for /opt/lemp/db/init/
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USER }}
+            key: ${{ secrets.SSH_KEY }}
+            port: 22
+            script: |
+              sudo chown -R $(whoami) /opt/lemp/db/init/
+              sudo chmod -R u+w /opt/lemp/db/init/
+
+        - name: Copy init.sql to VM
+          uses: appleboy/scp-action@v0.1.4
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            username: ${{ secrets.SSH_USER }}
+            key: ${{ secrets.SSH_KEY }}
+            port: 22
+            source: db/init/init.sql
+            target: /opt/lemp/db/init/
+            strip_components: 2
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: copy-init-sql
+    steps:
+    
+  
+
+      - name: Deploy to VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/lemp
+            
+            if [ ! -d "/var/lib/docker/volumes/lemp_db_data" ]; then
+              docker compose down -v
+            else
+              docker compose down
+            fi
+ 
+            docker compose pull
+            docker compose up -d
+            docker compose ps
