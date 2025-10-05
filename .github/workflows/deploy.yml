@@ -123,6 +123,34 @@ jobs:
            sudo chmod u+rwX /opt/lemp/docker-compose.prod.yml
            sudo chmod 775 /opt/lemp/docker-compose.prod.yml
 
+  copy-env-file:
+    runs-on: ubuntu-latest
+    needs: copy-docker-compose
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy .env to VM
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: .env
+          target: /opt/lemp/
+        
+      - name: Set permissions for .env
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            sudo chmod 600 /opt/lemp/.env
+            sudo chown $(whoami) /opt/lemp/.env
+
   deploy:
     runs-on: ubuntu-latest
     needs: copy-docker-compose
